@@ -1,0 +1,11 @@
+CloudNote Product FAQ
+
+What is CloudNote? CloudNote is a collaborative note-taking app for teams, available on web, iOS and Android.
+
+How much does it cost? The Free plan supports up to 3 users. The Pro plan costs $8 per user per month and adds unlimited history, offline mode and integrations. Enterprise pricing is available on request.
+
+Is my data secure? All data is encrypted at rest with AES-256 and in transit with TLS 1.3. Servers are hosted in the EU (Frankfurt).
+
+Can I export my notes? Yes. Notes can be exported to Markdown, PDF or HTML at any time from Settings > Export.
+
+How do I cancel? You can cancel anytime from Settings > Billing. Your plan stays active until the end of the billing period and no refunds are issued for partial months.

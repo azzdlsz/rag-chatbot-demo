@@ -1,0 +1,7 @@
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+numpy>=1.26
+pypdf==5.1.0
+openai>=1.55
+python-multipart==0.0.19
+python-dotenv==1.0.1
