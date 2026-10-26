@@ -15,7 +15,11 @@ from app import rag  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 ALLOWED = {".pdf", ".txt", ".md"}
-MAX_BYTES = 10 * 1024 * 1024
+MAX_BYTES = int(os.getenv("MAX_UPLOAD_MB", 10)) * 1024 * 1024
+PUBLIC_DEMO = os.getenv("PUBLIC_DEMO", "").lower() in ("1", "true", "yes")
+MAX_DOCS = int(os.getenv("MAX_DOCS", 20))
+MAX_CHARS = int(os.getenv("MAX_DOC_CHARS", 200_000))
+SAMPLES = set()
 
 app = FastAPI(title="RAG Chatbot Demo", version="1.0.0")
 store = rag.VectorStore()
@@ -28,7 +32,8 @@ class ChatRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "mode": "mock" if rag.MOCK else "openai",
+    return {"status": "ok", "public_demo": PUBLIC_DEMO, "max_upload_mb": MAX_BYTES // 1048576,
+            "max_docs": MAX_DOCS, "mode": "mock" if rag.MOCK else "openai",
             "documents": len(store.sources()), "chunks": len(store.chunks)}
 
 
@@ -42,10 +47,12 @@ async def upload(file: UploadFile = File(...)):
     ext = Path(file.filename or "").suffix.lower()
     if ext not in ALLOWED:
         raise HTTPException(400, f"Unsupported file type {ext}. Allowed: {sorted(ALLOWED)}")
-    data = await file.read()
+    if len(store.sources()) >= MAX_DOCS:
+        raise HTTPException(429, f"Demo limit reached ({MAX_DOCS} documents). Delete one first.")
+    data = await file.read(MAX_BYTES + 1)
     if len(data) > MAX_BYTES:
-        raise HTTPException(413, "File too large (max 10 MB)")
-    text = rag.extract_text(file.filename, data)
+        raise HTTPException(413, f"File too large (max {MAX_BYTES // 1048576} MB)")
+    text = rag.extract_text(file.filename, data)[:MAX_CHARS]
     n = store.add(file.filename, rag.chunk_text(text))
     if n == 0:
         raise HTTPException(422, "No extractable text found in file")
@@ -56,6 +63,8 @@ async def upload(file: UploadFile = File(...)):
 def delete(name: str):
     if name not in store.sources():
         raise HTTPException(404, "Document not found")
+    if PUBLIC_DEMO and name in SAMPLES:
+        raise HTTPException(403, "Sample documents can't be deleted in the public demo")
     with store.lock:
         store.remove(name)
     return {"deleted": name}
@@ -72,10 +81,12 @@ def chat(req: ChatRequest):
 @app.on_event("startup")
 def seed():
     """Index bundled sample docs on first run so the demo works out of the box."""
+    SAMPLES.update(p.name for p in (ROOT / "sample_docs").glob("*"))
     if store.chunks or os.getenv("SKIP_SEED"):
         return
     for p in sorted((ROOT / "sample_docs").glob("*")):
         if p.suffix.lower() in ALLOWED:
+            SAMPLES.add(p.name)
             store.add(p.name, rag.chunk_text(rag.extract_text(p.name, p.read_bytes())))
 
 

@@ -1,3 +1,15 @@
+---
+title: DocChat RAG Chatbot Demo
+emoji: 📄
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+license: mit
+short_description: Chat with your PDFs/text with cited sources (RAG demo)
+---
+
 # 📄 DocChat — RAG Chatbot for Your Documents
 
 Upload PDFs or text files and chat with them. DocChat uses **Retrieval-Augmented Generation (RAG)**: it splits documents into chunks, embeds them into a local vector store, retrieves the most relevant passages for each question and lets an LLM answer **with source citations**.
@@ -70,3 +82,9 @@ FAISS / Chroma / pgvector backend · auth & multi-tenant workspaces · streaming
 
 ## 📄 License
 MIT — see [LICENSE](LICENSE).
+
+
+## 🚀 Live demo deployment (free)
+**Hugging Face Spaces (Docker):** create a Space with SDK *Docker*, then push this repo to it (`git push https://huggingface.co/spaces/<user>/docchat main`). The README front-matter configures port 7860.
+**Render:** New → Web Service → this repo → runtime Docker, free plan (uses `render.yaml`).
+Public-demo env vars: `PUBLIC_DEMO=1`, `MAX_UPLOAD_MB=2`, `MAX_DOCS=15`. No `OPENAI_API_KEY` ⇒ offline mock mode, zero cost.

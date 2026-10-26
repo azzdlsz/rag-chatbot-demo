@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: docchat-demo
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: PUBLIC_DEMO
+        value: "1"
+      - key: MAX_UPLOAD_MB
+        value: "2"
+      - key: MAX_DOCS
+        value: "15"
